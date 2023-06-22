@@ -1,59 +1,141 @@
 package com.ngoctung.ble_ppg
 
+import android.Manifest
+import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Bundle
+import android.provider.Settings
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.navigation.fragment.findNavController
+import com.clj.fastble.BleManager
+import com.ngoctung.ble_ppg.databinding.FragmentScanBinding
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [ScanFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class ScanFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private var _binding: FragmentScanBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private val permissions = arrayOf(
+        Manifest.permission.BLUETOOTH,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_scan, container, false)
+    ): View {
+        _binding = FragmentScanBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        initBleManager()
+
+        binding.fab.setOnClickListener {
+            checkPermissions()
+        }
+    }
+
+    private fun initBleManager() {
+        BleManager.getInstance().init(requireActivity().application)
+        BleManager.getInstance()
+            .enableLog(true)
+            .setReConnectCount(1, 5000)
+            .setSplitWriteNum(20)
+            .setConnectOverTime(10000).operateTimeout = 5000
+    }
+
+    private fun checkPermissions() {
+        if (allPermissionsGranted()) {
+            onPermissionGranted()
+        } else {
+            requestPermissions(permissions, REQUEST_CODE_PERMISSIONS)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == REQUEST_CODE_PERMISSIONS)
+            if (allPermissionsGranted())
+                onPermissionGranted()
+            else
+                onPermissionDenied()
+    }
+
+    private fun onPermissionGranted() {
+        gpsNeeded()
+    }
+
+    private fun onPermissionDenied() {
+        Toast.makeText(
+            requireContext(),
+            "Permissions needed to scan bluetooth devices",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun allPermissionsGranted() = permissions.all {
+        ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun gpsNeeded(){
+        if(checkGPSIsOpen())
+//            bleScan()
+        else{
+            val alertDialog: AlertDialog? = activity?.let {
+                val builder = AlertDialog.Builder(it)
+                builder.apply {
+                    setTitle(R.string.gps_must_be_enable)
+                    setMessage(R.string.please_activate_your_gps)
+                    setPositiveButton(R.string.active_gps) {dialog,_ ->
+                        actvateGps()
+                        dialog.dismiss()
+                    }
+                    setNegativeButton(R.string.not_now) {dialog,_ ->
+                        dialog.dismiss()
+                    }
+                }
+                builder.create()
+            }
+            alertDialog?.show()
+        }
+    }
+
+    private fun checkGPSIsOpen(): Boolean {
+        val locationManager =
+            context?.getSystemService(Context.LOCATION_SERVICE) as LocationManager?
+                ?: return false
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    private fun actvateGps(){
+        val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+        startActivity(intent)
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ScanFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            ScanFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+        const val REQUEST_CODE_PERMISSIONS = 9999
+        const val BLE_DEVICE = "bleDevice"
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+
 }

@@ -2,4 +2,15 @@
     <string name="app_name">BLE_PPG</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="disconnecting">Disconnecting</string>
+    <string name="connecting">Connecting</string>
+    <string name="device_alert">Device Alert</string>
+    <string name="rssi">RSSI: %d</string>
+    <string name="distance_in_meters">*Distance in meters</string>
+    <string name="gps_must_be_enable">GPS must be enabled.</string>
+    <string name="please_activate_your_gps">Please activate your GPS to scan the bluetooth devices</string>
+    <string name="active_gps">Active GPS</string>
+    <string name="not_now">Not now</string>
 </resources>
