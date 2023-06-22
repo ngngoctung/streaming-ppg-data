@@ -10,19 +10,21 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.Fragment
 import com.clj.fastble.BleManager
 import com.clj.fastble.callback.BleGattCallback
 import com.clj.fastble.callback.BleNotifyCallback
 import com.clj.fastble.data.BleDevice
 import com.clj.fastble.exception.BleException
+import com.clj.fastble.utils.HexUtil
 import com.ngoctung.ble_ppg.databinding.FragmentScanBinding
+import kotlin.experimental.and
+
 
 class ScanFragment : Fragment() {
     private var _binding: FragmentScanBinding? = null
@@ -100,12 +102,23 @@ class ScanFragment : Fragment() {
                         }
 
                         override fun onCharacteristicChanged(data: ByteArray?) {
-                            val sb = StringBuilder()
-                            data?.forEach { b ->
-                                sb.append(String.format("%02x", b))
+//                            val sb = StringBuilder()
+//                            data?.forEach { b ->
+//                                sb.append(String.format("%02x", b))
+//                            }
+//                            val heartRate = Integer.parseInt(sb.toString(), 16)
+//                            Log.i("HEART RATE", data.toString())
+                            val intValue = ((data?.get(3)!!.toInt() and 0xFF) shl 24) or
+                                    ((data[2].toInt() and 0xFF) shl 16) or
+                                    ((data[1].toInt() and 0xFF) shl 8) or
+                                    ((data[0].toInt() and 0xFF))
+                            runOnUiThread {
+                                Toast.makeText(
+                                    requireContext(),
+                                    intValue.toString(),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
-                            val heartRate = Integer.parseInt(sb.toString(), 16)
-                            Log.i("HEART RATE", heartRate.toString())
                         }
                     })
             }
@@ -119,6 +132,10 @@ class ScanFragment : Fragment() {
                 Log.i("BLE", "CONNECT DISCONNECT")
             }
         })
+    }
+
+    private fun runOnUiThread(runnable: Runnable) {
+        if (isAdded && activity != null) requireActivity().runOnUiThread(runnable)
     }
 
     private fun checkPermissions() {
