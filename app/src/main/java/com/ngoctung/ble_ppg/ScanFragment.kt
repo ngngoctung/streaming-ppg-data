@@ -16,12 +16,14 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.clj.fastble.BleManager
 import com.clj.fastble.callback.BleGattCallback
 import com.clj.fastble.callback.BleNotifyCallback
 import com.clj.fastble.data.BleDevice
 import com.clj.fastble.exception.BleException
 import com.clj.fastble.utils.HexUtil
+import com.ngoctung.ble_ppg.databinding.FragmentConnectedBinding
 import com.ngoctung.ble_ppg.databinding.FragmentScanBinding
 import kotlin.experimental.and
 
@@ -50,7 +52,7 @@ class ScanFragment : Fragment() {
 
         binding.fab.setOnClickListener {
 //            checkPermissions()
-            receiveMibandHeartRateNotify()
+            findNavController().navigate(R.id.action_scanFragment_to_connectedFragment)
         }
     }
 
@@ -65,78 +67,72 @@ class ScanFragment : Fragment() {
             .setConnectOverTime(10000).operateTimeout = 5000
     }
 
-    private fun receiveMibandHeartRateNotify() {
-        val deviceMac = "EC:62:60:93:7F:3E"
-        val serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-        val notifyUuid = "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-
-        BleManager.getInstance().init(requireActivity().application)
-        BleManager.getInstance()
-            .enableLog(true)
-            .setReConnectCount(1, 5000)
-            .setSplitWriteNum(20)
-            .setConnectOverTime(10000).operateTimeout = 5000
-
-        BleManager.getInstance().connect(deviceMac, object : BleGattCallback() {
-            override fun onStartConnect() {
-                Log.i("BLE", "CONNECT START")
-            }
-
-            override fun onConnectFail(bleDevice: BleDevice?, exception: BleException?) {
-                Log.i("BLE", "CONNECT FAIL")
-            }
-
-            override fun onConnectSuccess(bleDevice: BleDevice?, gatt: BluetoothGatt?, status: Int) {
-                Log.i("BLE", "CONNECT SUCCESS")
-                BleManager.getInstance().notify(
-                    bleDevice,
-                    serviceUuid,
-                    notifyUuid,
-                    object : BleNotifyCallback() {
-                        override fun onNotifySuccess() {
-                            Log.i("BLE", "OPEN NOTIFY SUCCESS")
-                        }
-
-                        override fun onNotifyFailure(exception: BleException?) {
-                            Log.i("BLE", "OPEN NOTIFY FAIL")
-                        }
-
-                        override fun onCharacteristicChanged(data: ByteArray?) {
-//                            val sb = StringBuilder()
-//                            data?.forEach { b ->
-//                                sb.append(String.format("%02x", b))
+//    private fun receiveMibandHeartRateNotify() {
+//        val deviceMac = "EC:62:60:93:7F:3E"
+//        val serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+//        val notifyUuid = "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+//
+//        BleManager.getInstance().init(requireActivity().application)
+//        BleManager.getInstance()
+//            .enableLog(true)
+//            .setReConnectCount(1, 5000)
+//            .setSplitWriteNum(20)
+//            .setConnectOverTime(10000).operateTimeout = 5000
+//
+//        BleManager.getInstance().connect(deviceMac, object : BleGattCallback() {
+//            override fun onStartConnect() {
+//                Log.i("BLE", "CONNECT START")
+//            }
+//
+//            override fun onConnectFail(bleDevice: BleDevice?, exception: BleException?) {
+//                Log.i("BLE", "CONNECT FAIL")
+//            }
+//
+//            override fun onConnectSuccess(bleDevice: BleDevice?, gatt: BluetoothGatt?, status: Int) {
+//                Log.i("BLE", "CONNECT SUCCESS")
+//                BleManager.getInstance().notify(
+//                    bleDevice,
+//                    serviceUuid,
+//                    notifyUuid,
+//                    object : BleNotifyCallback() {
+//                        override fun onNotifySuccess() {
+//                            Log.i("BLE", "OPEN NOTIFY SUCCESS")
+//                        }
+//
+//                        override fun onNotifyFailure(exception: BleException?) {
+//                            Log.i("BLE", "OPEN NOTIFY FAIL")
+//                        }
+//
+//                        override fun onCharacteristicChanged(data: ByteArray?) {
+//                            val intValue = ((data?.get(3)!!.toInt() and 0xFF) shl 24) or
+//                                    ((data[2].toInt() and 0xFF) shl 16) or
+//                                    ((data[1].toInt() and 0xFF) shl 8) or
+//                                    ((data[0].toInt() and 0xFF))
+//                            runOnUiThread {
+//                                Toast.makeText(
+//                                    requireContext(),
+//                                    intValue.toString(),
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
 //                            }
-//                            val heartRate = Integer.parseInt(sb.toString(), 16)
-//                            Log.i("HEART RATE", data.toString())
-                            val intValue = ((data?.get(3)!!.toInt() and 0xFF) shl 24) or
-                                    ((data[2].toInt() and 0xFF) shl 16) or
-                                    ((data[1].toInt() and 0xFF) shl 8) or
-                                    ((data[0].toInt() and 0xFF))
-                            runOnUiThread {
-                                Toast.makeText(
-                                    requireContext(),
-                                    intValue.toString(),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                    })
-            }
-
-            override fun onDisConnected(
-                isActiveDisConnected: Boolean,
-                bleDevice: BleDevice?,
-                gatt: BluetoothGatt?,
-                status: Int
-            ) {
-                Log.i("BLE", "CONNECT DISCONNECT")
-            }
-        })
-    }
-
-    private fun runOnUiThread(runnable: Runnable) {
-        if (isAdded && activity != null) requireActivity().runOnUiThread(runnable)
-    }
+//                        }
+//                    })
+//            }
+//
+//            override fun onDisConnected(
+//                isActiveDisConnected: Boolean,
+//                bleDevice: BleDevice?,
+//                gatt: BluetoothGatt?,
+//                status: Int
+//            ) {
+//                Log.i("BLE", "CONNECT DISCONNECT")
+//            }
+//        })
+//    }
+//
+//    private fun runOnUiThread(runnable: Runnable) {
+//        if (isAdded && activity != null) requireActivity().runOnUiThread(runnable)
+//    }
 
     private fun checkPermissions() {
         if (allPermissionsGranted()) {
