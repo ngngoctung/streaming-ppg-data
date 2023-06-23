@@ -2,19 +2,16 @@ package com.ngoctung.ble_ppg
 
 import android.bluetooth.BluetoothGatt
 import android.graphics.Color
-import android.hardware.SensorEvent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.fragment.app.Fragment
 import com.clj.fastble.BleManager
 import com.clj.fastble.callback.BleGattCallback
-import com.clj.fastble.data.BleDevice
 import com.clj.fastble.callback.BleNotifyCallback
+import com.clj.fastble.data.BleDevice
 import com.clj.fastble.exception.BleException
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
@@ -29,8 +26,6 @@ import kotlinx.coroutines.*
 class ConnectedFragment : Fragment() {
     private var _binding: FragmentConnectedBinding? = null
     private val binding get() = _binding!!
-    private var plot_data = true
-    private var job: Job? = null
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -44,13 +39,14 @@ class ConnectedFragment : Fragment() {
             .setSplitWriteNum(20)
             .setConnectOverTime(10000).operateTimeout = 5000
 
-        binding.lineChart.description.isEnabled = true
+        binding.lineChart.description.isEnabled = false
         binding.lineChart.description.text = "PPG Data Plot"
         binding.lineChart.setTouchEnabled(true)
-        binding.lineChart.isDragEnabled = true
+        binding.lineChart.isAutoScaleMinMaxEnabled = true
+        binding.lineChart.isDragEnabled = false
         binding.lineChart.setScaleEnabled(true)
-        binding.lineChart.setDrawGridBackground(false)
-        binding.lineChart.setPinchZoom(true)
+        binding.lineChart.setDrawGridBackground(true)
+        binding.lineChart.setPinchZoom(false)
         binding.lineChart.setBackgroundColor(Color.WHITE)
 
         val data = LineData()
@@ -75,8 +71,8 @@ class ConnectedFragment : Fragment() {
         val leftAxis: YAxis = binding.lineChart.axisLeft
         leftAxis.textColor = Color.WHITE
         leftAxis.setDrawGridLines(false)
-        leftAxis.axisMaximum = 10f
-        leftAxis.axisMinimum = 0f
+//        leftAxis.axisMaximum = 10f
+//        leftAxis.axisMinimum = 0f
         leftAxis.setDrawGridLines(true)
 
         val rightAxis: YAxis = binding.lineChart.axisRight
@@ -87,8 +83,6 @@ class ConnectedFragment : Fragment() {
         binding.lineChart.setDrawBorders(false)
 
         receiveMibandHeartRateNotify()
-
-
         return binding.root
     }
 
@@ -134,16 +128,7 @@ class ConnectedFragment : Fragment() {
                                     ((data[1].toInt() and 0xFF) shl 8) or
                                     ((data[0].toInt() and 0xFF))
                             runOnUiThread {
-//                                Toast.makeText(
-//                                    requireContext(),
-//                                    intValue.toString(),
-//                                    Toast.LENGTH_SHORT
-//                                ).show()
-                                Log.i("BLE", intValue.toString())
-                                if(plot_data){
-                                    addEntry();
-                                    plot_data = false;
-                                }
+                                drawChart(intValue)
                             }
                         }
                     })
@@ -164,30 +149,18 @@ class ConnectedFragment : Fragment() {
         if (isAdded && activity != null) requireActivity().runOnUiThread(runnable)
     }
 
-    private fun addEntry() {
+    private fun drawChart(samples: Int) {
         val data: LineData = binding.lineChart.data
         var set = data.getDataSetByIndex(0)
-        // set.addEntry(...); // can be called as well
         if (set == null) {
             set = createSet()
             data.addDataSet(set)
         }
+        data.addEntry(Entry(set.entryCount.toFloat(), samples.toFloat()), 0)
 
-        data.addEntry(Entry(set.entryCount.toFloat(), (Math.random() * 80 + 10f).toFloat()), 0)
-//            data.addEntry(
-//                MutableMap.MutableEntry<Any?, Any?>(set.entryCount, event.values[0] + 5),
-//                0
-//            )
         data.notifyDataChanged()
-
-        // let the chart know it's data has changed
         binding.lineChart.notifyDataSetChanged()
-
-        // limit the number of visible entries
-//        binding.lineChart.setVisibleXRangeMaximum(150F)
-        // mChart.setVisibleYRange(30, AxisDependency.LEFT);
-
-        // move to the latest entry
+        binding.lineChart.setVisibleXRangeMaximum(500F)
         binding.lineChart.moveViewToX(data.entryCount.toFloat())
     }
 
@@ -202,16 +175,6 @@ class ConnectedFragment : Fragment() {
         set.mode = LineDataSet.Mode.CUBIC_BEZIER
         set.cubicIntensity = 0.2f
         return set
-    }
-
-    private fun feedMultiple() {
-        job?.cancel()
-        job = CoroutineScope(Dispatchers.Default).launch {
-            while (isActive) {
-                plot_data = true
-                delay(10)
-            }
-        }
     }
 
 }
