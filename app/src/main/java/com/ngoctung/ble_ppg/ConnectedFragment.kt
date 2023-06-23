@@ -39,14 +39,14 @@ class ConnectedFragment : Fragment() {
             .setSplitWriteNum(20)
             .setConnectOverTime(10000).operateTimeout = 5000
 
-        binding.lineChart.description.isEnabled = false
+        binding.lineChart.description.isEnabled = true
         binding.lineChart.description.text = "PPG Data Plot"
         binding.lineChart.setTouchEnabled(true)
         binding.lineChart.isAutoScaleMinMaxEnabled = true
-        binding.lineChart.isDragEnabled = false
+        binding.lineChart.isDragEnabled = true
         binding.lineChart.setScaleEnabled(true)
         binding.lineChart.setDrawGridBackground(true)
-        binding.lineChart.setPinchZoom(false)
+        binding.lineChart.setPinchZoom(true)
         binding.lineChart.setBackgroundColor(Color.WHITE)
 
         val data = LineData()
@@ -70,7 +70,7 @@ class ConnectedFragment : Fragment() {
 
         val leftAxis: YAxis = binding.lineChart.axisLeft
         leftAxis.textColor = Color.WHITE
-        leftAxis.setDrawGridLines(false)
+        leftAxis.setDrawGridLines(true)
 //        leftAxis.axisMaximum = 10f
 //        leftAxis.axisMinimum = 0f
         leftAxis.setDrawGridLines(true)
@@ -78,9 +78,9 @@ class ConnectedFragment : Fragment() {
         val rightAxis: YAxis = binding.lineChart.axisRight
         rightAxis.isEnabled = false
 
-        binding.lineChart.axisLeft.setDrawGridLines(false)
-        binding.lineChart.xAxis.setDrawGridLines(false)
-        binding.lineChart.setDrawBorders(false)
+        binding.lineChart.axisLeft.setDrawGridLines(true)
+        binding.lineChart.xAxis.setDrawGridLines(true)
+        binding.lineChart.setDrawBorders(true)
 
         receiveMibandHeartRateNotify()
         return binding.root
