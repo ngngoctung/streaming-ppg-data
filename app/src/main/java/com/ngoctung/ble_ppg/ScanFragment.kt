@@ -113,11 +113,7 @@ class ScanFragment : Fragment() {
                                     ((data[1].toInt() and 0xFF) shl 8) or
                                     ((data[0].toInt() and 0xFF))
                             runOnUiThread {
-                                Toast.makeText(
-                                    requireContext(),
-                                    intValue.toString(),
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                binding.textViewData.text = intValue.toString()
                             }
                         }
                     })
