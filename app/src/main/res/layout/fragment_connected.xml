@@ -24,31 +24,28 @@
             android:id="@+id/button_start"
             android:layout_width="120dp"
             android:layout_height="72dp"
-            android:layout_marginBottom="100dp"
+            android:layout_marginStart="60dp"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="#018767"
             android:text="START"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
         <Button
             android:id="@+id/button_stop"
             android:layout_width="120dp"
             android:layout_height="72dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="60dp"
+            android:backgroundTint="#018767"
             android:text="STOP"
-            app:layout_constraintBottom_toTopOf="@+id/button_start"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <Button
-            android:id="@+id/button_reset"
-            android:layout_width="120dp"
-            android:layout_height="72dp"
-            android:layout_marginBottom="10dp"
-            android:text="Reset"
-            app:layout_constraintBottom_toTopOf="@+id/button_stop"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/button_start"
+            app:layout_constraintEnd_toEndOf="parent" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

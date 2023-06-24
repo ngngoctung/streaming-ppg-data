@@ -49,14 +49,11 @@ class ScanFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initBleManager()
-
-        binding.fab.setOnClickListener {
-//            checkPermissions()
+        checkPermissions()
+        binding.buttonConnect.setOnClickListener {
             findNavController().navigate(R.id.action_scanFragment_to_connectedFragment)
         }
     }
-
-
 
     private fun initBleManager() {
         BleManager.getInstance().init(requireActivity().application)
@@ -66,73 +63,6 @@ class ScanFragment : Fragment() {
             .setSplitWriteNum(20)
             .setConnectOverTime(10000).operateTimeout = 5000
     }
-
-//    private fun receiveMibandHeartRateNotify() {
-//        val deviceMac = "EC:62:60:93:7F:3E"
-//        val serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-//        val notifyUuid = "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-//
-//        BleManager.getInstance().init(requireActivity().application)
-//        BleManager.getInstance()
-//            .enableLog(true)
-//            .setReConnectCount(1, 5000)
-//            .setSplitWriteNum(20)
-//            .setConnectOverTime(10000).operateTimeout = 5000
-//
-//        BleManager.getInstance().connect(deviceMac, object : BleGattCallback() {
-//            override fun onStartConnect() {
-//                Log.i("BLE", "CONNECT START")
-//            }
-//
-//            override fun onConnectFail(bleDevice: BleDevice?, exception: BleException?) {
-//                Log.i("BLE", "CONNECT FAIL")
-//            }
-//
-//            override fun onConnectSuccess(bleDevice: BleDevice?, gatt: BluetoothGatt?, status: Int) {
-//                Log.i("BLE", "CONNECT SUCCESS")
-//                BleManager.getInstance().notify(
-//                    bleDevice,
-//                    serviceUuid,
-//                    notifyUuid,
-//                    object : BleNotifyCallback() {
-//                        override fun onNotifySuccess() {
-//                            Log.i("BLE", "OPEN NOTIFY SUCCESS")
-//                        }
-//
-//                        override fun onNotifyFailure(exception: BleException?) {
-//                            Log.i("BLE", "OPEN NOTIFY FAIL")
-//                        }
-//
-//                        override fun onCharacteristicChanged(data: ByteArray?) {
-//                            val intValue = ((data?.get(3)!!.toInt() and 0xFF) shl 24) or
-//                                    ((data[2].toInt() and 0xFF) shl 16) or
-//                                    ((data[1].toInt() and 0xFF) shl 8) or
-//                                    ((data[0].toInt() and 0xFF))
-//                            runOnUiThread {
-//                                Toast.makeText(
-//                                    requireContext(),
-//                                    intValue.toString(),
-//                                    Toast.LENGTH_SHORT
-//                                ).show()
-//                            }
-//                        }
-//                    })
-//            }
-//
-//            override fun onDisConnected(
-//                isActiveDisConnected: Boolean,
-//                bleDevice: BleDevice?,
-//                gatt: BluetoothGatt?,
-//                status: Int
-//            ) {
-//                Log.i("BLE", "CONNECT DISCONNECT")
-//            }
-//        })
-//    }
-//
-//    private fun runOnUiThread(runnable: Runnable) {
-//        if (isAdded && activity != null) requireActivity().runOnUiThread(runnable)
-//    }
 
     private fun checkPermissions() {
         if (allPermissionsGranted()) {

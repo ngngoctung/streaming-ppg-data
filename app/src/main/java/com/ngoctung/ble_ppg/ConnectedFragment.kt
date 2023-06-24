@@ -7,7 +7,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.clj.fastble.BleManager
 import com.clj.fastble.callback.BleGattCallback
 import com.clj.fastble.callback.BleNotifyCallback
@@ -27,12 +29,9 @@ import com.ngoctung.ble_ppg.databinding.FragmentConnectedBinding
 class ConnectedFragment : Fragment() {
     private var _binding: FragmentConnectedBinding? = null
     private val binding get() = _binding!!
-    private val bleDevice: BleDevice? = null
 
     val deviceMac = "DE:79:D6:9C:6E:57"
-    //        val serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
     val serviceUuid = "6218e200-aa57-4302-9785-9d3727b0bde9"
-    //        val notifyUuid = "beb5483e-36e1-4688-b7f5-ea07361b26a8"
     val notifyUuid = "6218e203-aa57-4302-9785-9d3727b0bde9"
     val writeUuid = "6218e201-aa57-4302-9785-9d3727b0bde9"
     override fun onCreateView(
@@ -74,13 +73,13 @@ class ConnectedFragment : Fragment() {
         l.textColor = Color.WHITE
 
         val xl: XAxis = binding.lineChart.xAxis
-        xl.textColor = Color.WHITE
+        xl.textColor = Color.BLACK
         xl.setDrawGridLines(true)
         xl.setAvoidFirstLastClipping(true)
         xl.isEnabled = true
 
         val leftAxis: YAxis = binding.lineChart.axisLeft
-        leftAxis.textColor = Color.WHITE
+        leftAxis.textColor = Color.BLACK
         leftAxis.setDrawGridLines(true)
 //        leftAxis.axisMaximum = 100000f
 //        leftAxis.axisMinimum = 0f
@@ -97,6 +96,11 @@ class ConnectedFragment : Fragment() {
 
 
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
     }
 
     private fun receiveMibandHeartRateNotify() {
@@ -118,6 +122,10 @@ class ConnectedFragment : Fragment() {
 
             override fun onConnectSuccess(bleDevice: BleDevice?, gatt: BluetoothGatt?, status: Int) {
                 Log.i("BLE", "CONNECT SUCCESS")
+                Toast.makeText(requireContext(),
+                    "Connected device",
+                    Toast.LENGTH_SHORT
+                ).show()
                 binding.buttonStart.setOnClickListener{
                     BleManager.getInstance().write(
                         bleDevice,
@@ -181,6 +189,11 @@ class ConnectedFragment : Fragment() {
                 status: Int
             ) {
                 Log.i("BLE", "CONNECT DISCONNECT")
+                Toast.makeText(requireContext(),
+                    "Disconnected BLE with device",
+                    Toast.LENGTH_SHORT
+                ).show()
+                findNavController().navigate(R.id.action_connectedFragment_to_scanFragment)
             }
         })
     }
@@ -200,7 +213,7 @@ class ConnectedFragment : Fragment() {
 
         data.notifyDataChanged()
         binding.lineChart.notifyDataSetChanged()
-        binding.lineChart.setVisibleXRangeMaximum(50F)
+        binding.lineChart.setVisibleXRangeMaximum(30F)
         binding.lineChart.moveViewToX(data.entryCount.toFloat())
     }
 
@@ -208,7 +221,7 @@ class ConnectedFragment : Fragment() {
         val set = LineDataSet(null, "Dynamic Data")
         set.axisDependency = YAxis.AxisDependency.LEFT
         set.lineWidth = 3f
-        set.color = Color.MAGENTA
+        set.color = Color.BLUE
         set.isHighlightEnabled = false
         set.setDrawValues(false)
         set.setDrawCircles(false)
