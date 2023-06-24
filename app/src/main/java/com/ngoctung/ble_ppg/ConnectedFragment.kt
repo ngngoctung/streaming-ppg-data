@@ -11,8 +11,10 @@ import androidx.fragment.app.Fragment
 import com.clj.fastble.BleManager
 import com.clj.fastble.callback.BleGattCallback
 import com.clj.fastble.callback.BleNotifyCallback
+import com.clj.fastble.callback.BleWriteCallback
 import com.clj.fastble.data.BleDevice
 import com.clj.fastble.exception.BleException
+import com.clj.fastble.utils.HexUtil
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
@@ -20,12 +22,19 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.ngoctung.ble_ppg.databinding.FragmentConnectedBinding
-import kotlinx.coroutines.*
 
 
 class ConnectedFragment : Fragment() {
     private var _binding: FragmentConnectedBinding? = null
     private val binding get() = _binding!!
+    private val bleDevice: BleDevice? = null
+
+    val deviceMac = "DE:79:D6:9C:6E:57"
+    //        val serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+    val serviceUuid = "6218e200-aa57-4302-9785-9d3727b0bde9"
+    //        val notifyUuid = "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+    val notifyUuid = "6218e203-aa57-4302-9785-9d3727b0bde9"
+    val writeUuid = "6218e201-aa57-4302-9785-9d3727b0bde9"
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,6 +47,8 @@ class ConnectedFragment : Fragment() {
             .setReConnectCount(1, 5000)
             .setSplitWriteNum(20)
             .setConnectOverTime(10000).operateTimeout = 5000
+
+
 
         binding.lineChart.description.isEnabled = true
         binding.lineChart.description.text = "PPG Data Plot"
@@ -71,7 +82,7 @@ class ConnectedFragment : Fragment() {
         val leftAxis: YAxis = binding.lineChart.axisLeft
         leftAxis.textColor = Color.WHITE
         leftAxis.setDrawGridLines(true)
-//        leftAxis.axisMaximum = 10f
+//        leftAxis.axisMaximum = 100000f
 //        leftAxis.axisMinimum = 0f
         leftAxis.setDrawGridLines(true)
 
@@ -83,14 +94,12 @@ class ConnectedFragment : Fragment() {
         binding.lineChart.setDrawBorders(true)
 
         receiveMibandHeartRateNotify()
+
+
         return binding.root
     }
 
     private fun receiveMibandHeartRateNotify() {
-        val deviceMac = "EC:62:60:93:7F:3E"
-        val serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-        val notifyUuid = "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-
         BleManager.getInstance().init(requireActivity().application)
         BleManager.getInstance()
             .enableLog(true)
@@ -109,6 +118,36 @@ class ConnectedFragment : Fragment() {
 
             override fun onConnectSuccess(bleDevice: BleDevice?, gatt: BluetoothGatt?, status: Int) {
                 Log.i("BLE", "CONNECT SUCCESS")
+                binding.buttonStart.setOnClickListener{
+                    BleManager.getInstance().write(
+                        bleDevice,
+                        serviceUuid,
+                        writeUuid,
+                        HexUtil.hexStringToBytes("0801100A"),
+                        object : BleWriteCallback() {
+                            override fun onWriteSuccess(current: Int, total: Int, justWrite: ByteArray) {
+                                Log.i("BLE", "START GET DATA AFE4420")
+                            }
+                            override fun onWriteFailure(exception: BleException) {
+                                Log.i("BLE", "FAILED START GET DATA AFE4420")
+                            }
+                        })
+                }
+                binding.buttonStop.setOnClickListener{
+                    BleManager.getInstance().write(
+                        bleDevice,
+                        serviceUuid,
+                        writeUuid,
+                        HexUtil.hexStringToBytes("0801100B"),
+                        object : BleWriteCallback() {
+                            override fun onWriteSuccess(current: Int, total: Int, justWrite: ByteArray) {
+                                Log.i("BLE", "STOP GET DATA AFE4420")
+                            }
+                            override fun onWriteFailure(exception: BleException) {
+                                Log.i("BLE", "FAILED STOP GET DATA AFE4420")
+                            }
+                        })
+                }
                 BleManager.getInstance().notify(
                     bleDevice,
                     serviceUuid,
@@ -127,6 +166,7 @@ class ConnectedFragment : Fragment() {
                                     ((data[2].toInt() and 0xFF) shl 16) or
                                     ((data[1].toInt() and 0xFF) shl 8) or
                                     ((data[0].toInt() and 0xFF))
+                            Log.i("NOTIFY DATA", intValue.toString())
                             runOnUiThread {
                                 drawChart(intValue)
                             }
@@ -160,7 +200,7 @@ class ConnectedFragment : Fragment() {
 
         data.notifyDataChanged()
         binding.lineChart.notifyDataSetChanged()
-        binding.lineChart.setVisibleXRangeMaximum(500F)
+        binding.lineChart.setVisibleXRangeMaximum(50F)
         binding.lineChart.moveViewToX(data.entryCount.toFloat())
     }
 
